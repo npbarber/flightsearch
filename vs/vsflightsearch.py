@@ -42,6 +42,10 @@ def flight_search(b, dep_date, ret_date):
     form.set_value(['redeemMiles'], 'search_type')
     b._browser.form = form
     b.submit()
+
+    # Keep refreshing until the 'Refresh this page' link is no more.
+    # We know the search has finished at that point and we have some
+    # results to work with
     while b.find_link('Refresh this page'):
         b.follow_link(b.find_link('Refresh this page'))
 
@@ -49,9 +53,15 @@ def flight_search(b, dep_date, ret_date):
 def dates_available(b, dep_date, ret_date):
     html = b.get_html()
 
+    # Sometimes, you are taken to the page where you can select flights.
+    # If that happened here, we know the selected dates are available.
     if 'Choose Your Flights' in html:
         return True
 
+    # Othertimes, even though our specific dates are available, we are
+    # still presented with the calendar where we can change dates.  If
+    # that happened here, look at the calendars to see if we have radio
+    # buttons available for out selected outbound and inbound dates.
     outday = dep_date.split('/')[0]
     retday = ret_date.split('/')[0]
     if 'date1_%s  ' % outday in html and 'date2_%s  ' % retday in html:
@@ -61,11 +71,6 @@ def dates_available(b, dep_date, ret_date):
 
 def send_alert(sender, recipients, depdate, retdate):
     print 'Dates available! %s -> %s' % (depdate, retdate)
-    recipients = [
-        'neil.barber@disneyanimation.com',
-        'npbarber@gmail.com',
-        '6268412568@messaging.sprintpcs.com'
-    ]
     emailer = mail.Email(sender, recipients,
                          'FLIGHTS AVAILABLE %s to %s' % (depdate, retdate),
                          'Check out the free flights at Virgin')
@@ -93,17 +98,26 @@ def bail(msg):
     print msg
     sys.exit(1)
 
+
 def main():
     args = parse_args()
+
+    # Disable the auto refreshing whilst searching for flights.
+    # We'll deal with that manually
     tc.config('acknowledge_equiv_refresh', False)
+
     b = get_browser()
     b.go('%s' % base_url)
+
+    # Flying Club login is required to spend miles
     if not login(b, args.username, args.password):
         bail('Login Error')
 
+    # Search for flights
     load_booking_page(b)
-
     flight_search(b, args.depdate, args.retdate)
+
+    # If nothing availbe, we're done
     if not dates_available(b, args.depdate, args.retdate):
         return
 
