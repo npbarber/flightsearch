@@ -3,7 +3,7 @@
 import unittest
 from mock import call, patch, Mock
 
-from vs import vsflightsearch as vfs
+from flightsearch import vsflightsearch as vfs
 
 class VSFLightSearchTestCase(unittest.TestCase):
 
@@ -64,7 +64,7 @@ class VSFLightSearchTestCase(unittest.TestCase):
         self.browser.get_html.return_value = 'xxx  xxx'
         self.assertFalse(vfs.dates_available(self.browser, '10/12/13', '14/15/16'))
 
-    @patch('vs.vsflightsearch.mail')
+    @patch('flightsearch.vsflightsearch.mail')
     def test_send_alert(self, m_mail):
         emailer = Mock()
         m_mail.Email.return_value = emailer
