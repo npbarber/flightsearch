@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+from flightsearch import vsflightsearch as vsf
+
+from twill import get_browser
+from twill import commands as tc
+
+
+base_url = 'https://www.virgin-atlantic.com'
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='find my free flights')
+    parser.add_argument('-o', '--outfile', help='write html to file')
+    parser.add_argument('-u', '--username', help='flying club username',
+                        required=True)
+    parser.add_argument('-p', '--password', help='flying club password',
+                        required=True)
+    parser.add_argument('-d', '--depdate', help='departure d/m/yy',
+                        required=True)
+    parser.add_argument('-r', '--retdate', help='return d/m/yy',
+                        required=True)
+    parser.add_argument('-s', '--sender', help='who an alert is sent from',
+                        required=True)
+    parser.add_argument('--recipient', help='who gets alerts',
+                        action='append', required=True)
+    return parser.parse_args()
+
+
+def bail(msg):
+    print msg
+    sys.exit(1)
+
+
+def main():
+    args = parse_args()
+
+    # Disable the auto refreshing whilst searching for flights.
+    # We'll deal with that manually
+    tc.config('acknowledge_equiv_refresh', False)
+
+    b = get_browser()
+    b.go('%s' % base_url)
+
+    # Flying Club login is required to spend miles
+    if not vsf.login(b, args.username, args.password):
+        bail('Login Error')
+
+    # Search for flights
+    vsf.load_booking_page(b)
+    vsf.flight_search(b, args.depdate, args.retdate)
+
+    # Dump the html to disk if asked to
+    if args.outfile:
+        vsf.write_html_to_disk(b, args.outfile)
+
+    # If nothing availbe, we're done
+    if not vsf.dates_available(b, args.depdate, args.retdate):
+        return
+
+    vsf.send_alert(args.sender, args.recipient, args.depdate, args.retdate)
+
+if __name__ == '__main__':
+    main()
