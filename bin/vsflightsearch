@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from flightsearch import vsflightsearch as vsf
+from flightsearch import common as fs_common
 
 from twill import get_browser
 from twill import commands as tc
@@ -61,7 +62,8 @@ def main():
     if not vsf.dates_available(b, args.depdate, args.retdate):
         return
 
-    vsf.send_alert(args.sender, args.recipient, args.depdate, args.retdate)
+    fs_common.send_alert(args.sender, args.recipient, args.depdate,
+                         args.retdate)
 
 if __name__ == '__main__':
     main()

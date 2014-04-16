@@ -1,7 +1,6 @@
 #!/use/bin/env python
 
 from flightsearch import common as fs_common
-from dtk import mail
 
 
 base_url = 'https://www.virgin-atlantic.com'
@@ -67,11 +66,3 @@ def dates_available(b, dep_date, ret_date):
     if 'date1_%s  ' % outday in html and 'date2_%s  ' % retday in html:
         return True
     return False
-
-
-def send_alert(sender, recipients, depdate, retdate):
-    print 'Dates available! %s -> %s' % (depdate, retdate)
-    emailer = mail.Email(sender, recipients,
-                         'FLIGHTS AVAILABLE %s to %s' % (depdate, retdate),
-                         'Check out the free flights at Virgin')
-    emailer.send()

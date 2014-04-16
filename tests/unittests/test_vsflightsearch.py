@@ -65,19 +65,12 @@ class VSFLightSearchTestCase(unittest.TestCase):
         self.browser.get_html.return_value = 'xxx  xxx'
         self.assertFalse(vfs.dates_available(self.browser, '10/12/13', '14/15/16'))
 
-    @patch('flightsearch.vsflightsearch.mail')
-    def test_send_alert(self, m_mail):
-        emailer = Mock()
-        m_mail.Email.return_value = emailer
-        vfs.send_alert('s', 'r', 'd', 'r')
-        m_mail.Email.assert_called_once_with('s', 'r', 'FLIGHTS AVAILABLE d to r', 'Check out the free flights at Virgin')
-        emailer.send.assert_called_once_with()
-
-
     @patch('flightsearch.common.write_to_file')
     def test_write_html_to_disk(self, m_wtf):
         self.browser.get_html.return_value = 'html'
         vfs.write_html_to_disk(self.browser, 'outfile')
         m_wtf.assert_called_once_with('html', 'outfile')
+
+
 if __name__ == '__main__':
     unittest.main()
