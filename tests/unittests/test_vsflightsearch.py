@@ -4,6 +4,7 @@ import unittest
 from mock import call, patch, Mock
 
 from flightsearch import vsflightsearch as vfs
+from flightsearch import common as fs_common
 
 class VSFLightSearchTestCase(unittest.TestCase):
 
@@ -73,5 +74,10 @@ class VSFLightSearchTestCase(unittest.TestCase):
         emailer.send.assert_called_once_with()
 
 
+    @patch('flightsearch.common.write_to_file')
+    def test_write_html_to_disk(self, m_wtf):
+        self.browser.get_html.return_value = 'html'
+        vfs.write_html_to_disk(self.browser, 'outfile')
+        m_wtf.assert_called_once_with('html', 'outfile')
 if __name__ == '__main__':
     unittest.main()

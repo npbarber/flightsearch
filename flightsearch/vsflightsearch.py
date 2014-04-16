@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+from flightsearch import common as fs_common
 from dtk import mail
 
 from twill import get_browser
@@ -50,6 +51,11 @@ def flight_search(b, dep_date, ret_date):
         b.follow_link(b.find_link('Refresh this page'))
 
 
+def write_html_to_disk(b, outfile):
+    html = b.get_html()
+    fs_common.write_to_file(html, outfile)
+
+
 def dates_available(b, dep_date, ret_date):
     html = b.get_html()
 
@@ -79,6 +85,7 @@ def send_alert(sender, recipients, depdate, retdate):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='find my free flights')
+    parser.add_argument('-o', '--outfile', help='write html to file')
     parser.add_argument('-u', '--username', help='flying club username',
                         required=True)
     parser.add_argument('-p', '--password', help='flying club password',
@@ -116,6 +123,10 @@ def main():
     # Search for flights
     load_booking_page(b)
     flight_search(b, args.depdate, args.retdate)
+
+    # Dump the html to disk if asked to
+    if args.outfile:
+        write_html_to_disk(b, args.outfile)
 
     # If nothing availbe, we're done
     if not dates_available(b, args.depdate, args.retdate):
