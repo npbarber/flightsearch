@@ -1,0 +1,60 @@
+#!/usr/bin/python
+
+vayama_url = 'http://www.vayama.com/home/searching.jsp?s=268958503&vayamaVisit=0&clickThrough=N&originArray=LAX,LHR&destArray=LHR,LAX&dateArray=01092014,06092014&cabinClass=Y&carrPreferance=&noAdults=1&noSenior=0&noChild=0&noInfants=0&noStudents=0&nonStops=&timeArray=0,0,0,0&couponCode=&tripType=RT&random=0.4434155204799026'
+
+
+import sys
+import signal
+
+from flightsearch import common
+from PyQt4.QtCore import SIGNAL, QUrl
+from PyQt4.QtGui import QApplication
+from PyQt4.QtWebKit import QWebPage
+
+#url = "http://www.stackoverflow.com"
+
+class Crawler(QWebPage):
+
+    def __init__(self, url, outfile, wait_text):
+        QWebPage.__init__(self)
+        self.url = url
+        self.outfile = outfile
+        self.try_again = True
+        self.wait_text = wait_text
+
+    def crawl(self):
+        self.connect(self, SIGNAL('loadFinished(bool)'), self._finished)
+        self.mainFrame().load(QUrl(self.url))
+
+    def _finished(self, val):
+        html = self.mainFrame().toHtml()
+        if self.wait_text in html:
+            print 'waiting...'
+            return
+        encoded = str(html.toUtf8())
+        self._process_html(encoded)
+        common.write_to_file(encoded, self.outfile)
+        sys.exit()
+
+    def _process_html(self, string):
+        sub = string.split('Best<br>Prices</b>')[1].split('</a><br>')[0]
+        price = float(sub.split('title="')[1].split('">')[0])
+
+        if price > 1270:
+            return
+        common.send_price_alert('tinomeat@gmail.com',
+                                ['6268412568@messaging.sprintpcs.com'],
+                                'Vayama Price Alert',
+                                'Cheapest Fare currently: %s' % price)
+        print price
+
+
+def main():
+    app = QApplication(sys.argv)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    c1 = Crawler(vayama_url, '/disk1/tmp/oot1.html', u'vayama | searching')
+    c1.crawl()
+    app.exec_()
+
+if __name__ == '__main__':
+    main()

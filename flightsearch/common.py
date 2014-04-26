@@ -12,3 +12,9 @@ def send_alert(sender, recipients, depdate, retdate):
                          'Check out the free flights at Virgin')
     emailer.send()
 
+
+def send_price_alert(sender, recipients, body, subject):
+    print body, subject
+    emailer = mail.Email(sender, recipients, subject, body)
+    emailer.send()
+
